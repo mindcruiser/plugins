@@ -9,6 +9,9 @@ import '../store_kit_wrappers.dart';
 
 /// Contains InApp Purchase features that are only available on iOS.
 class InAppPurchaseIosPlatformAddition extends InAppPurchasePlatformAddition {
+  final SKTransactionObserverWrapper _observer;
+  /// constructor
+  InAppPurchaseIosPlatformAddition(this._observer);
   /// Present Code Redemption Sheet.
   ///
   /// Available on devices running iOS 14 and iPadOS 14 and later.
@@ -58,4 +61,6 @@ class InAppPurchaseIosPlatformAddition extends InAppPurchasePlatformAddition {
   /// See documentation of StoreKit's [`-[SKPaymentQueue showPriceConsentIfNeeded]`](https://developer.apple.com/documentation/storekit/skpaymentqueue/3521327-showpriceconsentifneeded?language=objc).
   Future showPriceConsentIfNeeded() =>
       SKPaymentQueueWrapper().showPriceConsentIfNeeded();
+  /// todo 自定义新增
+  Stream<SKPaymentWrapper> get shouldAddStoreStream => _observer.shouldAddStorePaymentControllerStream;
 }

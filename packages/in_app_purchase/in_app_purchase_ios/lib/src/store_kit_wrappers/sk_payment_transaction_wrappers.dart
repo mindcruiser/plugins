@@ -43,6 +43,9 @@ abstract class SKTransactionObserverWrapper {
   /// `payment` param from this method.
   bool shouldAddStorePayment(
       {required SKPaymentWrapper payment, required SKProductWrapper product});
+
+  /// todo
+  Stream<SKPaymentWrapper> get shouldAddStorePaymentControllerStream async* {}
 }
 
 /// The state of a transaction.

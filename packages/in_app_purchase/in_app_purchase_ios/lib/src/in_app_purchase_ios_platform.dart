@@ -47,7 +47,7 @@ class InAppPurchaseIosPlatform extends InAppPurchasePlatform {
   static void registerPlatform() {
     // Register the [InAppPurchaseIosPlatformAddition] containing iOS
     // platform-specific functionality.
-    InAppPurchasePlatformAddition.instance = InAppPurchaseIosPlatformAddition();
+    InAppPurchasePlatformAddition.instance = InAppPurchaseIosPlatformAddition(_observer);
 
     // Register the platform-specific implementation of the idiomatic
     // InAppPurchase API.
@@ -67,6 +67,9 @@ class InAppPurchaseIosPlatform extends InAppPurchasePlatform {
     /// todo 自定义修改
     _observer = _TransactionObserver(updateController, addStoreController);
     _skPaymentQueueWrapper.setTransactionObserver(observer);
+    /// todo 自定义新增
+    final stream = _observer.shouldAddStorePaymentController.stream;
+    InAppPurchasePlatformAddition.instance;
   }
 
   @override
@@ -223,4 +226,8 @@ class _TransactionObserver implements SKTransactionObserverWrapper {
     }
     return _receiptData;
   }
+
+  @override
+  // TODO: implement shouldAddStorePaymentControllerStream
+  Stream<SKPaymentWrapper> get shouldAddStorePaymentControllerStream => shouldAddStorePaymentController.stream;
 }

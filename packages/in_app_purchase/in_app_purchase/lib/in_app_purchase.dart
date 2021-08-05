@@ -74,9 +74,6 @@ class InAppPurchase implements InAppPurchasePlatformAdditionProvider {
   Stream<List<PurchaseDetails>> get purchaseStream =>
       InAppPurchasePlatform.instance.purchaseStream;
 
-  /// todo 自定义新增
-  Stream<SKPaymentWrapper> get shouldAddStoreStream => InAppPurchasePlatform.instance.shouldAddStoreStream;
-
   /// Returns `true` if the payment platform is ready and available.
   Future<bool> isAvailable() => InAppPurchasePlatform.instance.isAvailable();
 

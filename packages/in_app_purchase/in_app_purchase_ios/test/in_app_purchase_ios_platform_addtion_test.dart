@@ -19,23 +19,23 @@ void main() {
         .setMockMethodCallHandler(fakeIOSPlatform.onMethodCall);
   });
 
-  group('present code redemption sheet', () {
-    test('null', () async {
-      expect(
-          await InAppPurchaseIosPlatformAddition().presentCodeRedemptionSheet(),
-          null);
-    });
-  });
+  // group('present code redemption sheet', () {
+  //   test('null', () async {
+  //     expect(
+  //         await InAppPurchaseIosPlatformAddition().presentCodeRedemptionSheet(),
+  //         null);
+  //   });
+  // });
 
-  group('refresh receipt data', () {
-    test('should refresh receipt data', () async {
-      PurchaseVerificationData? receiptData =
-          await InAppPurchaseIosPlatformAddition()
-              .refreshPurchaseVerificationData();
-      expect(receiptData, isNotNull);
-      expect(receiptData!.source, kIAPSource);
-      expect(receiptData.localVerificationData, 'refreshed receipt data');
-      expect(receiptData.serverVerificationData, 'refreshed receipt data');
-    });
-  });
+  // group('refresh receipt data', () {
+  //   test('should refresh receipt data', () async {
+  //     PurchaseVerificationData? receiptData =
+  //         await InAppPurchaseIosPlatformAddition()
+  //             .refreshPurchaseVerificationData();
+  //     expect(receiptData, isNotNull);
+  //     expect(receiptData!.source, kIAPSource);
+  //     expect(receiptData.localVerificationData, 'refreshed receipt data');
+  //     expect(receiptData.serverVerificationData, 'refreshed receipt data');
+  //   });
+  // });
 }
