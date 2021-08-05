@@ -25,17 +25,17 @@ dependencies:
     git:
       url: https://github.com/SkywalkerDarren/plugins.git
       path: packages/in_app_purchase/in_app_purchase_platform_interface
-      ref: notta-iap-1.0.8
+      ref: notta-iap-1.0.9
   in_app_purchase_android:
     git:
       url: https://github.com/SkywalkerDarren/plugins.git
       path: packages/in_app_purchase/in_app_purchase_android
-      ref: notta-iap-1.0.8
+      ref: notta-iap-1.0.9
   in_app_purchase_ios:
     git:
       url: https://github.com/SkywalkerDarren/plugins.git
       path: packages/in_app_purchase/in_app_purchase_ios
-      ref: notta-iap-1.0.8
+      ref: notta-iap-1.0.9
 
 dev_dependencies:
   flutter_driver:

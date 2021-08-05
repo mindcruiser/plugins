@@ -212,7 +212,7 @@ class _TransactionObserver implements SKTransactionObserverWrapper {
     shouldAddStorePaymentController.add(payment);
 
     /// todo 自定义修改, true 表示处理应用商店的订阅信息
-    return false;
+    return true;
   }
 
   Future<String> getReceiptData() async {
