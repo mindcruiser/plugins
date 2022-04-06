@@ -46,11 +46,6 @@ class InAppPurchaseStoreKitPlatform extends InAppPurchasePlatform {
 
   /// Registers this class as the default instance of [InAppPurchasePlatform].
   static void registerPlatform() {
-    // Register the [InAppPurchaseStoreKitPlatformAddition] containing
-    // StoreKit-specific functionality.
-    InAppPurchasePlatformAddition.instance =
-        InAppPurchaseStoreKitPlatformAddition();
-
     // Register the platform-specific implementation of the idiomatic
     // InAppPurchase API.
     InAppPurchasePlatform.instance = InAppPurchaseStoreKitPlatform();
@@ -68,9 +63,9 @@ class InAppPurchaseStoreKitPlatform extends InAppPurchasePlatform {
     StreamController<SKPaymentWrapper> addStoreController = StreamController.broadcast();
     /// todo 自定义修改
     _observer = _TransactionObserver(updateController, addStoreController);
-    // Register the [InAppPurchaseIosPlatformAddition] containing iOS
-    // platform-specific functionality.
-    InAppPurchasePlatformAddition.instance = InAppPurchaseIosPlatformAddition(_observer);
+    // Register the [InAppPurchaseStoreKitPlatformAddition] containing
+    // StoreKit-specific functionality.
+    InAppPurchasePlatformAddition.instance = InAppPurchaseStoreKitPlatformAddition(_observer);
 
     _skPaymentQueueWrapper.setTransactionObserver(observer);
   }

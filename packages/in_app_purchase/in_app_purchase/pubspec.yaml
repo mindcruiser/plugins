@@ -31,10 +31,10 @@ dependencies:
       url: https://github.com/mindcruiser/plugins.git
       path: packages/in_app_purchase/in_app_purchase_android
       ref: notta
-  in_app_purchase_ios:
+  in_app_purchase_storekit:
     git:
       url: https://github.com/mindcruiser/plugins.git
-      path: packages/in_app_purchase/in_app_purchase_ios
+      path: packages/in_app_purchase/in_app_purchase_storekit
       ref: notta
 
 dev_dependencies:

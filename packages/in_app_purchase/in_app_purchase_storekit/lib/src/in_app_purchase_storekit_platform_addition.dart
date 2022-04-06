@@ -12,7 +12,7 @@ class InAppPurchaseStoreKitPlatformAddition
     extends InAppPurchasePlatformAddition {
   final SKTransactionObserverWrapper _observer;
   /// constructor
-  InAppPurchaseIosPlatformAddition(this._observer);
+  InAppPurchaseStoreKitPlatformAddition(this._observer);
   /// Present Code Redemption Sheet.
   ///
   /// Available on devices running iOS 14 and iPadOS 14 and later.
