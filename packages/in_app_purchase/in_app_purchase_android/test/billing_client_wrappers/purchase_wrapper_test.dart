@@ -4,10 +4,9 @@
 
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
-import 'package:in_app_purchase_android/src/billing_client_wrappers/enum_converters.dart';
 import 'package:test/test.dart';
 
-final PurchaseWrapper dummyPurchase = PurchaseWrapper(
+const PurchaseWrapper dummyPurchase = PurchaseWrapper(
   orderId: 'orderId',
   packageName: 'packageName',
   purchaseTime: 0,
@@ -23,7 +22,7 @@ final PurchaseWrapper dummyPurchase = PurchaseWrapper(
   obfuscatedProfileId: 'Profile103',
 );
 
-final PurchaseWrapper dummyUnacknowledgedPurchase = PurchaseWrapper(
+const PurchaseWrapper dummyUnacknowledgedPurchase = PurchaseWrapper(
   orderId: 'orderId',
   packageName: 'packageName',
   purchaseTime: 0,
@@ -37,7 +36,7 @@ final PurchaseWrapper dummyUnacknowledgedPurchase = PurchaseWrapper(
   purchaseState: PurchaseStateWrapper.purchased,
 );
 
-final PurchaseHistoryRecordWrapper dummyPurchaseHistoryRecord =
+const PurchaseHistoryRecordWrapper dummyPurchaseHistoryRecord =
     PurchaseHistoryRecordWrapper(
   purchaseTime: 0,
   signature: 'signature',
@@ -47,7 +46,7 @@ final PurchaseHistoryRecordWrapper dummyPurchaseHistoryRecord =
   developerPayload: 'dummy payload',
 );
 
-final PurchaseWrapper dummyOldPurchase = PurchaseWrapper(
+const PurchaseWrapper dummyOldPurchase = PurchaseWrapper(
   orderId: 'oldOrderId',
   packageName: 'oldPackageName',
   purchaseTime: 0,
@@ -64,16 +63,17 @@ final PurchaseWrapper dummyOldPurchase = PurchaseWrapper(
 void main() {
   group('PurchaseWrapper', () {
     test('converts from map', () {
-      final PurchaseWrapper expected = dummyPurchase;
+      const PurchaseWrapper expected = dummyPurchase;
       final PurchaseWrapper parsed =
           PurchaseWrapper.fromJson(buildPurchaseMap(expected));
 
       expect(parsed, equals(expected));
     });
 
-    test('toPurchaseDetails() should return correct PurchaseDetail object', () {
+    test('fromPurchase() should return correct PurchaseDetail object', () {
       final GooglePlayPurchaseDetails details =
           GooglePlayPurchaseDetails.fromPurchase(dummyPurchase);
+
       expect(details.purchaseID, dummyPurchase.orderId);
       expect(details.productID, dummyPurchase.sku);
       expect(details.transactionDate, dummyPurchase.purchaseTime.toString());
@@ -84,13 +84,32 @@ void main() {
       expect(details.verificationData.serverVerificationData,
           dummyPurchase.purchaseToken);
       expect(details.billingClientPurchase, dummyPurchase);
+      expect(details.pendingCompletePurchase, false);
+    });
+
+    test(
+        'fromPurchase() should return set pendingCompletePurchase to true for unacknowledged purchase',
+        () {
+      final GooglePlayPurchaseDetails details =
+          GooglePlayPurchaseDetails.fromPurchase(dummyUnacknowledgedPurchase);
+
+      expect(details.purchaseID, dummyPurchase.orderId);
+      expect(details.productID, dummyPurchase.sku);
+      expect(details.transactionDate, dummyPurchase.purchaseTime.toString());
+      expect(details.verificationData, isNotNull);
+      expect(details.verificationData.source, kIAPSource);
+      expect(details.verificationData.localVerificationData,
+          dummyPurchase.originalJson);
+      expect(details.verificationData.serverVerificationData,
+          dummyPurchase.purchaseToken);
+      expect(details.billingClientPurchase, dummyUnacknowledgedPurchase);
       expect(details.pendingCompletePurchase, true);
     });
   });
 
   group('PurchaseHistoryRecordWrapper', () {
     test('converts from map', () {
-      final PurchaseHistoryRecordWrapper expected = dummyPurchaseHistoryRecord;
+      const PurchaseHistoryRecordWrapper expected = dummyPurchaseHistoryRecord;
       final PurchaseHistoryRecordWrapper parsed =
           PurchaseHistoryRecordWrapper.fromJson(
               buildPurchaseHistoryRecordMap(expected));
@@ -101,13 +120,13 @@ void main() {
 
   group('PurchasesResultWrapper', () {
     test('parsed from map', () {
-      final BillingResponse responseCode = BillingResponse.ok;
+      const BillingResponse responseCode = BillingResponse.ok;
       final List<PurchaseWrapper> purchases = <PurchaseWrapper>[
         dummyPurchase,
         dummyPurchase
       ];
       const String debugMessage = 'dummy Message';
-      final BillingResultWrapper billingResult = BillingResultWrapper(
+      const BillingResultWrapper billingResult = BillingResultWrapper(
           responseCode: responseCode, debugMessage: debugMessage);
       final PurchasesResultWrapper expected = PurchasesResultWrapper(
           billingResult: billingResult,
@@ -116,7 +135,7 @@ void main() {
       final PurchasesResultWrapper parsed =
           PurchasesResultWrapper.fromJson(<String, dynamic>{
         'billingResult': buildBillingResultMap(billingResult),
-        'responseCode': BillingResponseConverter().toJson(responseCode),
+        'responseCode': const BillingResponseConverter().toJson(responseCode),
         'purchasesList': <Map<String, dynamic>>[
           buildPurchaseMap(dummyPurchase),
           buildPurchaseMap(dummyPurchase)
@@ -129,10 +148,10 @@ void main() {
 
     test('parsed from empty map', () {
       final PurchasesResultWrapper parsed =
-          PurchasesResultWrapper.fromJson(<String, dynamic>{});
+          PurchasesResultWrapper.fromJson(const <String, dynamic>{});
       expect(
           parsed.billingResult,
-          equals(BillingResultWrapper(
+          equals(const BillingResultWrapper(
               responseCode: BillingResponse.error,
               debugMessage: kInvalidBillingResultErrorMessage)));
       expect(parsed.responseCode, BillingResponse.error);
@@ -142,14 +161,14 @@ void main() {
 
   group('PurchasesHistoryResult', () {
     test('parsed from map', () {
-      final BillingResponse responseCode = BillingResponse.ok;
+      const BillingResponse responseCode = BillingResponse.ok;
       final List<PurchaseHistoryRecordWrapper> purchaseHistoryRecordList =
           <PurchaseHistoryRecordWrapper>[
         dummyPurchaseHistoryRecord,
         dummyPurchaseHistoryRecord
       ];
       const String debugMessage = 'dummy Message';
-      final BillingResultWrapper billingResult = BillingResultWrapper(
+      const BillingResultWrapper billingResult = BillingResultWrapper(
           responseCode: responseCode, debugMessage: debugMessage);
       final PurchasesHistoryResult expected = PurchasesHistoryResult(
           billingResult: billingResult,
@@ -169,10 +188,10 @@ void main() {
 
     test('parsed from empty map', () {
       final PurchasesHistoryResult parsed =
-          PurchasesHistoryResult.fromJson(<String, dynamic>{});
+          PurchasesHistoryResult.fromJson(const <String, dynamic>{});
       expect(
           parsed.billingResult,
-          equals(BillingResultWrapper(
+          equals(const BillingResultWrapper(
               responseCode: BillingResponse.error,
               debugMessage: kInvalidBillingResultErrorMessage)));
       expect(parsed.purchaseHistoryRecordList, isEmpty);
@@ -191,7 +210,8 @@ Map<String, dynamic> buildPurchaseMap(PurchaseWrapper original) {
     'isAutoRenewing': original.isAutoRenewing,
     'originalJson': original.originalJson,
     'developerPayload': original.developerPayload,
-    'purchaseState': PurchaseStateConverter().toJson(original.purchaseState),
+    'purchaseState':
+        const PurchaseStateConverter().toJson(original.purchaseState),
     'isAcknowledged': original.isAcknowledged,
     'obfuscatedAccountId': original.obfuscatedAccountId,
     'obfuscatedProfileId': original.obfuscatedProfileId,
@@ -212,7 +232,8 @@ Map<String, dynamic> buildPurchaseHistoryRecordMap(
 
 Map<String, dynamic> buildBillingResultMap(BillingResultWrapper original) {
   return <String, dynamic>{
-    'responseCode': BillingResponseConverter().toJson(original.responseCode),
+    'responseCode':
+        const BillingResponseConverter().toJson(original.responseCode),
     'debugMessage': original.debugMessage,
   };
 }

@@ -3,10 +3,11 @@
 // found in the LICENSE file.
 
 import 'dart:ui' show hashValues;
+
 import 'package:flutter/foundation.dart';
 import 'package:json_annotation/json_annotation.dart';
+
 import 'billing_client_wrapper.dart';
-import 'enum_converters.dart';
 
 // WARNING: Changes to `@JsonSerializable` classes need to be reflected in the
 // below generated file. Run `flutter packages pub run build_runner watch` to
@@ -17,7 +18,7 @@ part 'sku_details_wrapper.g.dart';
 ///
 /// This usually indicates a series underlining code issue in the plugin.
 @visibleForTesting
-const kInvalidBillingResultErrorMessage =
+const String kInvalidBillingResultErrorMessage =
     'Invalid billing result map from method channel.';
 
 /// Dart wrapper around [`com.android.billingclient.api.SkuDetails`](https://developer.android.com/reference/com/android/billingclient/api/SkuDetails).
@@ -25,14 +26,17 @@ const kInvalidBillingResultErrorMessage =
 /// Contains the details of an available product in Google Play Billing.
 @JsonSerializable()
 @SkuTypeConverter()
+@immutable
 class SkuDetailsWrapper {
   /// Creates a [SkuDetailsWrapper] with the given purchase details.
   @visibleForTesting
-  SkuDetailsWrapper({
+  const SkuDetailsWrapper({
     required this.description,
     required this.freeTrialPeriod,
     required this.introductoryPrice,
-    required this.introductoryPriceMicros,
+    @Deprecated('Use `introductoryPriceAmountMicros` parameter instead')
+        String introductoryPriceMicros = '',
+    this.introductoryPriceAmountMicros = 0,
     required this.introductoryPriceCycles,
     required this.introductoryPricePeriod,
     required this.price,
@@ -45,7 +49,7 @@ class SkuDetailsWrapper {
     required this.type,
     required this.originalPrice,
     required this.originalPriceAmountMicros,
-  });
+  }) : _introductoryPriceMicros = introductoryPriceMicros;
 
   /// Constructs an instance of this from a key value map of data.
   ///
@@ -54,6 +58,8 @@ class SkuDetailsWrapper {
   @visibleForTesting
   factory SkuDetailsWrapper.fromJson(Map<String, dynamic> map) =>
       _$SkuDetailsWrapperFromJson(map);
+
+  final String _introductoryPriceMicros;
 
   /// Textual description of the product.
   @JsonKey(defaultValue: '')
@@ -67,9 +73,18 @@ class SkuDetailsWrapper {
   @JsonKey(defaultValue: '')
   final String introductoryPrice;
 
-  /// [introductoryPrice] in micro-units 990000
-  @JsonKey(defaultValue: '')
-  final String introductoryPriceMicros;
+  /// [introductoryPrice] in micro-units 990000.
+  ///
+  /// Returns 0 if the SKU is not a subscription or doesn't have an introductory
+  /// period.
+  final int introductoryPriceAmountMicros;
+
+  /// String representation of [introductoryPrice] in micro-units 990000
+  @Deprecated('Use `introductoryPriceAmountMicros` instead.')
+  @JsonKey(ignore: true)
+  String get introductoryPriceMicros => _introductoryPriceMicros.isEmpty
+      ? introductoryPriceAmountMicros.toString()
+      : _introductoryPriceMicros;
 
   /// The number of subscription billing periods for which the user will be given the introductory price, such as 3.
   /// Returns 0 if the SKU is not a subscription or doesn't have an introductory period.
@@ -127,22 +142,21 @@ class SkuDetailsWrapper {
       return false;
     }
 
-    final SkuDetailsWrapper typedOther = other;
-    return typedOther is SkuDetailsWrapper &&
-        typedOther.description == description &&
-        typedOther.freeTrialPeriod == freeTrialPeriod &&
-        typedOther.introductoryPrice == introductoryPrice &&
-        typedOther.introductoryPriceMicros == introductoryPriceMicros &&
-        typedOther.introductoryPriceCycles == introductoryPriceCycles &&
-        typedOther.introductoryPricePeriod == introductoryPricePeriod &&
-        typedOther.price == price &&
-        typedOther.priceAmountMicros == priceAmountMicros &&
-        typedOther.sku == sku &&
-        typedOther.subscriptionPeriod == subscriptionPeriod &&
-        typedOther.title == title &&
-        typedOther.type == type &&
-        typedOther.originalPrice == originalPrice &&
-        typedOther.originalPriceAmountMicros == originalPriceAmountMicros;
+    return other is SkuDetailsWrapper &&
+        other.description == description &&
+        other.freeTrialPeriod == freeTrialPeriod &&
+        other.introductoryPrice == introductoryPrice &&
+        other.introductoryPriceAmountMicros == introductoryPriceAmountMicros &&
+        other.introductoryPriceCycles == introductoryPriceCycles &&
+        other.introductoryPricePeriod == introductoryPricePeriod &&
+        other.price == price &&
+        other.priceAmountMicros == priceAmountMicros &&
+        other.sku == sku &&
+        other.subscriptionPeriod == subscriptionPeriod &&
+        other.title == title &&
+        other.type == type &&
+        other.originalPrice == originalPrice &&
+        other.originalPriceAmountMicros == originalPriceAmountMicros;
   }
 
   @override
@@ -151,7 +165,7 @@ class SkuDetailsWrapper {
         description.hashCode,
         freeTrialPeriod.hashCode,
         introductoryPrice.hashCode,
-        introductoryPriceMicros.hashCode,
+        introductoryPriceAmountMicros.hashCode,
         introductoryPriceCycles.hashCode,
         introductoryPricePeriod.hashCode,
         price.hashCode,
@@ -169,10 +183,11 @@ class SkuDetailsWrapper {
 ///
 /// Returned by [BillingClient.querySkuDetails].
 @JsonSerializable()
+@immutable
 class SkuDetailsResponseWrapper {
   /// Creates a [SkuDetailsResponseWrapper] with the given purchase details.
   @visibleForTesting
-  SkuDetailsResponseWrapper(
+  const SkuDetailsResponseWrapper(
       {required this.billingResult, required this.skuDetailsList});
 
   /// Constructs an instance of this from a key value map of data.
@@ -195,10 +210,9 @@ class SkuDetailsResponseWrapper {
       return false;
     }
 
-    final SkuDetailsResponseWrapper typedOther = other;
-    return typedOther is SkuDetailsResponseWrapper &&
-        typedOther.billingResult == billingResult &&
-        typedOther.skuDetailsList == skuDetailsList;
+    return other is SkuDetailsResponseWrapper &&
+        other.billingResult == billingResult &&
+        other.skuDetailsList == skuDetailsList;
   }
 
   @override
@@ -208,9 +222,10 @@ class SkuDetailsResponseWrapper {
 /// Params containing the response code and the debug message from the Play Billing API response.
 @JsonSerializable()
 @BillingResponseConverter()
+@immutable
 class BillingResultWrapper {
   /// Constructs the object with [responseCode] and [debugMessage].
-  BillingResultWrapper({required this.responseCode, this.debugMessage});
+  const BillingResultWrapper({required this.responseCode, this.debugMessage});
 
   /// Constructs an instance of this from a key value map of data.
   ///
@@ -218,7 +233,7 @@ class BillingResultWrapper {
   /// types of all of the members on this class.
   factory BillingResultWrapper.fromJson(Map<String, dynamic>? map) {
     if (map == null || map.isEmpty) {
-      return BillingResultWrapper(
+      return const BillingResultWrapper(
           responseCode: BillingResponse.error,
           debugMessage: kInvalidBillingResultErrorMessage);
     }
@@ -240,10 +255,9 @@ class BillingResultWrapper {
       return false;
     }
 
-    final BillingResultWrapper typedOther = other;
-    return typedOther is BillingResultWrapper &&
-        typedOther.responseCode == responseCode &&
-        typedOther.debugMessage == debugMessage;
+    return other is BillingResultWrapper &&
+        other.responseCode == responseCode &&
+        other.debugMessage == debugMessage;
   }
 
   @override

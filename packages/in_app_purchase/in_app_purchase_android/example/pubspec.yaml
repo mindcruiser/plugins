@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  shared_preferences: ^2.0.0
   in_app_purchase_android:
     # When depending on this package from a real application you should use:
     #   in_app_purchase_android: ^x.y.z
@@ -20,16 +19,16 @@ dependencies:
 
   in_app_purchase_platform_interface:
     git:
-      url: https://github.com/SkywalkerDarren/plugins.git
+      url: https://github.com/mindcruiser/plugins.git
       path: packages/in_app_purchase/in_app_purchase_platform_interface
-      ref: notta-iap-1.0.9
+      ref: notta
+  shared_preferences: ^2.0.0
 
 dev_dependencies:
   flutter_driver:
     sdk: flutter
   integration_test:
     sdk: flutter
-  pedantic: ^1.10.0
 
 flutter:
   uses-material-design: true
