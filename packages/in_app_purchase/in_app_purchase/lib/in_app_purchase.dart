@@ -8,9 +8,6 @@ import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 
-/// todo 自定义新增
-import 'package:in_app_purchase_ios/store_kit_wrappers.dart';
-
 export 'package:in_app_purchase_platform_interface/in_app_purchase_platform_interface.dart'
     show
         IAPError,
