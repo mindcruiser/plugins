@@ -23,7 +23,7 @@ dependencies:
     sdk: flutter
   in_app_purchase_platform_interface:
     git:
-      url: https://github.com/SkywalkerDarren/plugins.git
+      url: https://github.com/mindcruiser/plugins.git
       path: packages/in_app_purchase/in_app_purchase_platform_interface
       ref: notta-iap-1.0.9
   json_annotation: ^4.0.1
