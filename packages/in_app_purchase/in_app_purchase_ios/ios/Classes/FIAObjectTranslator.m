@@ -159,7 +159,11 @@
   NSMutableDictionary *userInfo = [NSMutableDictionary new];
   for (NSErrorUserInfoKey key in error.userInfo) {
     id value = error.userInfo[key];
-    if ([value isKindOfClass:[NSError class]]) {
+    if ([value isKindOfClass:[NSArray class]]) {
+        for (id e in value) {
+            userInfo[key] = [FIAObjectTranslator getMapFromNSError:e];
+        }
+    } else if ([value isKindOfClass:[NSError class]]) {
       userInfo[key] = [FIAObjectTranslator getMapFromNSError:value];
     } else if ([value isKindOfClass:[NSURL class]]) {
       userInfo[key] = [value absoluteString];
