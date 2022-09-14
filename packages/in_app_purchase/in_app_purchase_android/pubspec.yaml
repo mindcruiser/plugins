@@ -27,7 +27,7 @@ dependencies:
     git:
       url: https://github.com/mindcruiser/plugins.git
       path: packages/in_app_purchase/in_app_purchase_platform_interface
-      ref: notta-iap-2.0.0
+      ref: notta
   json_annotation: ^4.6.0
 
 dev_dependencies:

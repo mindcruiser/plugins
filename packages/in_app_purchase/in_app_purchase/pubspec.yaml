@@ -26,19 +26,19 @@ dependencies:
     git:
       url: https://github.com/mindcruiser/plugins.git
       path: packages/in_app_purchase/in_app_purchase_platform_interface
-      ref: notta-iap-2.0.0
+      ref: notta
   in_app_purchase_android:
 #    path: ../in_app_purchase_android
     git:
       url: https://github.com/mindcruiser/plugins.git
       path: packages/in_app_purchase/in_app_purchase_android
-      ref: notta-iap-2.0.0
+      ref: notta
   in_app_purchase_storekit:
 #    path: ../in_app_purchase_storekit
     git:
       url: https://github.com/mindcruiser/plugins.git
       path: packages/in_app_purchase/in_app_purchase_storekit
-      ref: notta-iap-2.0.0
+      ref: notta
 
 dev_dependencies:
   flutter_driver:
