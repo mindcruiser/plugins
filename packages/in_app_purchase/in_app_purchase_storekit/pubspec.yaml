@@ -4,6 +4,8 @@ repository: https://github.com/flutter/plugins/tree/main/packages/in_app_purchas
 issue_tracker: https://github.com/flutter/flutter/issues?q=is%3Aissue+is%3Aopen+label%3A%22p%3A+in_app_purchase%22
 version: 0.3.2
 
+publish_to: 'none'
+
 environment:
   sdk: ">=2.14.0 <3.0.0"
   flutter: ">=2.10.0"
@@ -20,10 +22,11 @@ dependencies:
   flutter:
     sdk: flutter
   in_app_purchase_platform_interface:
+#    path: ../in_app_purchase_platform_interface
     git:
       url: https://github.com/mindcruiser/plugins.git
       path: packages/in_app_purchase/in_app_purchase_platform_interface
-      ref: notta-iap-1.1.0
+      ref: notta-iap-2.0.0
   json_annotation: ^4.3.0
 
 dev_dependencies:
