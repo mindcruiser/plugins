@@ -22,7 +22,7 @@ dependencies:
     git:
       url: https://github.com/mindcruiser/plugins.git
       path: packages/in_app_purchase/in_app_purchase_platform_interface
-      ref: notta
+      ref: notta-iap-2.0.1
   shared_preferences: ^2.0.0
 
 dev_dependencies:
