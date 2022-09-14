@@ -11,8 +11,6 @@ import android.app.Activity;
 import android.app.KeyguardManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
@@ -43,14 +41,14 @@ public class LocalAuthPlugin implements MethodCallHandler, FlutterPlugin, Activi
   private static final String CHANNEL_NAME = "plugins.flutter.io/local_auth_android";
   private static final int LOCK_REQUEST_CODE = 221;
   private Activity activity;
-  private final AtomicBoolean authInProgress = new AtomicBoolean(false);
   private AuthenticationHelper authHelper;
+
+  @VisibleForTesting final AtomicBoolean authInProgress = new AtomicBoolean(false);
 
   // These are null when not using v2 embedding.
   private MethodChannel channel;
   private Lifecycle lifecycle;
   private BiometricManager biometricManager;
-  private FingerprintManager fingerprintManager;
   private KeyguardManager keyguardManager;
   private Result lockRequestResult;
   private final PluginRegistry.ActivityResultListener resultListener =
@@ -101,14 +99,17 @@ public class LocalAuthPlugin implements MethodCallHandler, FlutterPlugin, Activi
       case "authenticate":
         authenticate(call, result);
         break;
-      case "getAvailableBiometrics":
-        getAvailableBiometrics(result);
+      case "getEnrolledBiometrics":
+        getEnrolledBiometrics(result);
         break;
       case "isDeviceSupported":
         isDeviceSupported(result);
         break;
       case "stopAuthentication":
         stopAuthentication(result);
+        break;
+      case "deviceSupportsBiometrics":
+        deviceSupportsBiometrics(result);
         break;
       default:
         result.notImplemented();
@@ -145,79 +146,45 @@ public class LocalAuthPlugin implements MethodCallHandler, FlutterPlugin, Activi
     }
 
     authInProgress.set(true);
-    AuthCompletionHandler completionHandler =
-        new AuthCompletionHandler() {
-          @Override
-          public void onSuccess() {
-            authenticateSuccess(result);
-          }
+    AuthCompletionHandler completionHandler = createAuthCompletionHandler(result);
 
-          @Override
-          public void onFailure() {
-            authenticateFail(result);
-          }
-
-          @Override
-          public void onError(String code, String error) {
-            if (authInProgress.compareAndSet(true, false)) {
-              result.error(code, error, null);
-            }
-          }
-        };
-
-    // if is biometricOnly try biometric prompt - might not work
     boolean isBiometricOnly = call.argument("biometricOnly");
-    if (isBiometricOnly) {
-      if (!canAuthenticateWithBiometrics()) {
-        if (!hasBiometricHardware()) {
-          completionHandler.onError("NoHardware", "No biometric hardware found");
+    boolean allowCredentials = !isBiometricOnly && canAuthenticateWithDeviceCredential();
+
+    sendAuthenticationRequest(call, completionHandler, allowCredentials);
+    return;
+  }
+
+  @VisibleForTesting
+  public AuthCompletionHandler createAuthCompletionHandler(final Result result) {
+    return new AuthCompletionHandler() {
+      @Override
+      public void onSuccess() {
+        authenticateSuccess(result);
+      }
+
+      @Override
+      public void onFailure() {
+        authenticateFail(result);
+      }
+
+      @Override
+      public void onError(String code, String error) {
+        if (authInProgress.compareAndSet(true, false)) {
+          result.error(code, error, null);
         }
-        completionHandler.onError("NotEnrolled", "No biometrics enrolled on this device.");
-        return;
       }
-      authHelper =
-          new AuthenticationHelper(
-              lifecycle, (FragmentActivity) activity, call, completionHandler, false);
-      authHelper.authenticate();
-      return;
-    }
+    };
+  }
 
-    // API 29 and above
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-      authHelper =
-          new AuthenticationHelper(
-              lifecycle, (FragmentActivity) activity, call, completionHandler, true);
-      authHelper.authenticate();
-      return;
-    }
+  @VisibleForTesting
+  public void sendAuthenticationRequest(
+      MethodCall call, AuthCompletionHandler completionHandler, boolean allowCredentials) {
+    authHelper =
+        new AuthenticationHelper(
+            lifecycle, (FragmentActivity) activity, call, completionHandler, allowCredentials);
 
-    // API 23 - 28 with fingerprint
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && fingerprintManager != null) {
-      if (fingerprintManager.hasEnrolledFingerprints()) {
-        authHelper =
-            new AuthenticationHelper(
-                lifecycle, (FragmentActivity) activity, call, completionHandler, false);
-        authHelper.authenticate();
-        return;
-      }
-    }
-
-    // API 23 or higher with device credentials
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-        && keyguardManager != null
-        && keyguardManager.isDeviceSecure()) {
-      String title = call.argument("signInTitle");
-      String reason = call.argument("localizedReason");
-      Intent authIntent = keyguardManager.createConfirmDeviceCredentialIntent(title, reason);
-
-      // save result for async response
-      lockRequestResult = result;
-      activity.startActivityForResult(authIntent, LOCK_REQUEST_CODE);
-      return;
-    }
-
-    // Unable to authenticate
-    result.error("NotSupported", "This device does not support required security features", null);
+    authHelper.authenticate();
   }
 
   private void authenticateSuccess(Result result) {
@@ -248,58 +215,65 @@ public class LocalAuthPlugin implements MethodCallHandler, FlutterPlugin, Activi
     }
   }
 
+  private void deviceSupportsBiometrics(final Result result) {
+    result.success(hasBiometricHardware());
+  }
+
   /*
-   * Returns biometric types available on device
+   * Returns enrolled biometric types available on device.
    */
-  private void getAvailableBiometrics(final Result result) {
+  private void getEnrolledBiometrics(final Result result) {
     try {
       if (activity == null || activity.isFinishing()) {
         result.error("no_activity", "local_auth plugin requires a foreground activity", null);
         return;
       }
-      ArrayList<String> biometrics = getAvailableBiometrics();
+      ArrayList<String> biometrics = getEnrolledBiometrics();
       result.success(biometrics);
     } catch (Exception e) {
       result.error("no_biometrics_available", e.getMessage(), null);
     }
   }
 
-  private ArrayList<String> getAvailableBiometrics() {
+  @VisibleForTesting
+  public ArrayList<String> getEnrolledBiometrics() {
     ArrayList<String> biometrics = new ArrayList<>();
     if (activity == null || activity.isFinishing()) {
       return biometrics;
     }
-    PackageManager packageManager = activity.getPackageManager();
-    if (Build.VERSION.SDK_INT >= 23) {
-      if (packageManager.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)) {
-        biometrics.add("fingerprint");
-      }
+    if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+        == BiometricManager.BIOMETRIC_SUCCESS) {
+      biometrics.add("weak");
     }
-    if (Build.VERSION.SDK_INT >= 29) {
-      if (packageManager.hasSystemFeature(PackageManager.FEATURE_FACE)) {
-        biometrics.add("face");
-      }
-      if (packageManager.hasSystemFeature(PackageManager.FEATURE_IRIS)) {
-        biometrics.add("iris");
-      }
+    if (biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+        == BiometricManager.BIOMETRIC_SUCCESS) {
+      biometrics.add("strong");
     }
-
     return biometrics;
   }
 
-  private boolean isDeviceSupported() {
+  @VisibleForTesting
+  public boolean isDeviceSupported() {
     if (keyguardManager == null) return false;
     return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && keyguardManager.isDeviceSecure());
   }
 
   private boolean canAuthenticateWithBiometrics() {
     if (biometricManager == null) return false;
-    return biometricManager.canAuthenticate() == BiometricManager.BIOMETRIC_SUCCESS;
+    return biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+        == BiometricManager.BIOMETRIC_SUCCESS;
   }
 
   private boolean hasBiometricHardware() {
     if (biometricManager == null) return false;
-    return biometricManager.canAuthenticate() != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE;
+    return biometricManager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+        != BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE;
+  }
+
+  private boolean canAuthenticateWithDeviceCredential() {
+    if (biometricManager == null) return false;
+    return biometricManager.canAuthenticate(BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+        == BiometricManager.BIOMETRIC_SUCCESS;
   }
 
   private void isDeviceSupported(Result result) {
@@ -321,10 +295,6 @@ public class LocalAuthPlugin implements MethodCallHandler, FlutterPlugin, Activi
     Context context = activity.getBaseContext();
     biometricManager = BiometricManager.from(activity);
     keyguardManager = (KeyguardManager) context.getSystemService(KEYGUARD_SERVICE);
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-      fingerprintManager =
-          (FingerprintManager) context.getSystemService(Context.FINGERPRINT_SERVICE);
-    }
   }
 
   @Override
@@ -358,5 +328,10 @@ public class LocalAuthPlugin implements MethodCallHandler, FlutterPlugin, Activi
   @VisibleForTesting
   final Activity getActivity() {
     return activity;
+  }
+
+  @VisibleForTesting
+  void setBiometricManager(BiometricManager biometricManager) {
+    this.biometricManager = biometricManager;
   }
 }

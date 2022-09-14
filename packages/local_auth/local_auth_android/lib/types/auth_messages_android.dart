@@ -110,17 +110,18 @@ class AndroidAuthMessages extends AuthMessages {
           signInTitle == other.signInTitle;
 
   @override
-  int get hashCode =>
-      biometricHint.hashCode ^
-      biometricNotRecognized.hashCode ^
-      biometricRequiredTitle.hashCode ^
-      biometricSuccess.hashCode ^
-      cancelButton.hashCode ^
-      deviceCredentialsRequiredTitle.hashCode ^
-      deviceCredentialsSetupDescription.hashCode ^
-      goToSettingsButton.hashCode ^
-      goToSettingsDescription.hashCode ^
-      signInTitle.hashCode;
+  int get hashCode => Object.hash(
+      super.hashCode,
+      biometricHint,
+      biometricNotRecognized,
+      biometricRequiredTitle,
+      biometricSuccess,
+      cancelButton,
+      deviceCredentialsRequiredTitle,
+      deviceCredentialsSetupDescription,
+      goToSettingsButton,
+      goToSettingsDescription,
+      signInTitle);
 }
 
 // Default strings for AndroidAuthMessages. Currently supports English.
@@ -186,6 +187,6 @@ String get androidDeviceCredentialsSetupDescription =>
 /// biometric on their device.
 String get androidGoToSettingsDescription => Intl.message(
     'Biometric authentication is not set up on your device. Go to '
-    '\'Settings > Security\' to add biometric authentication.',
+    "'Settings > Security' to add biometric authentication.",
     desc: 'Message advising the user to go to the settings and configure '
         'biometric on their device.');

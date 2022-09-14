@@ -1,3 +1,8 @@
+## NEXT
+
+* Updates minimum Flutter version to 2.10.
+* Removes unnecessary imports.
+
 ## 1.3.1
 
 * Update to use the `verify` method introduced in plugin_platform_interface 2.1.0.

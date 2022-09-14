@@ -1,6 +1,19 @@
 ## NEXT
 
+* Updates minimum Flutter version to 2.10.
+* Fixes avoid_redundant_argument_values lint warnings and minor typos.
+
+## 2.0.11
+
+* Updates references to the obsolete master branch.
+* Fixes integration test permission issue on recent versions of macOS.
+
+## 2.0.10
+
+* Removes unnecessary imports.
 * Adds OS version support information to README.
+* Fixes library_private_types_in_public_api, sort_child_properties_last and use_key_in_widget_constructors
+  lint warnings.
 
 ## 2.0.9
 

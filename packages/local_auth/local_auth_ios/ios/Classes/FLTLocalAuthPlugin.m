@@ -35,8 +35,10 @@
     } else {
       [self authenticate:call.arguments withFlutterResult:result];
     }
-  } else if ([@"getAvailableBiometrics" isEqualToString:call.method]) {
-    [self getAvailableBiometrics:result];
+  } else if ([@"getEnrolledBiometrics" isEqualToString:call.method]) {
+    [self getEnrolledBiometrics:result];
+  } else if ([@"deviceSupportsBiometrics" isEqualToString:call.method]) {
+    [self deviceSupportsBiometrics:result];
   } else if ([@"isDeviceSupported" isEqualToString:call.method]) {
     result(@YES);
   } else {
@@ -82,7 +84,16 @@
                 handler:^(UIAlertAction *action) {
                   if (UIApplicationOpenSettingsURLString != NULL) {
                     NSURL *url = [NSURL URLWithString:UIApplicationOpenSettingsURLString];
-                    [[UIApplication sharedApplication] openURL:url];
+                    if (@available(iOS 10, *)) {
+                      [[UIApplication sharedApplication] openURL:url
+                                                         options:@{}
+                                               completionHandler:NULL];
+                    } else {
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+                      [[UIApplication sharedApplication] openURL:url];
+#pragma clang diagnostic pop
+                    }
                     result(@NO);
                   }
                 }];
@@ -93,14 +104,44 @@
                                                                                    completion:nil];
 }
 
-- (void)getAvailableBiometrics:(FlutterResult)result {
+- (void)deviceSupportsBiometrics:(FlutterResult)result {
+  LAContext *context = self.createAuthContext;
+  NSError *authError = nil;
+  // Check if authentication with biometrics is possible.
+  if ([context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics
+                           error:&authError]) {
+    if (authError == nil) {
+      result(@YES);
+      return;
+    }
+  }
+  // If not, check if it is because no biometrics are enrolled (but still present).
+  if (authError != nil) {
+    if (@available(iOS 11, *)) {
+      if (authError.code == LAErrorBiometryNotEnrolled) {
+        result(@YES);
+        return;
+      }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    } else if (authError.code == LAErrorTouchIDNotEnrolled) {
+      result(@YES);
+      return;
+#pragma clang diagnostic pop
+    }
+  }
+
+  result(@NO);
+}
+
+- (void)getEnrolledBiometrics:(FlutterResult)result {
   LAContext *context = self.createAuthContext;
   NSError *authError = nil;
   NSMutableArray<NSString *> *biometrics = [[NSMutableArray<NSString *> alloc] init];
   if ([context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics
                            error:&authError]) {
     if (authError == nil) {
-      if (@available(iOS 11.0.1, *)) {
+      if (@available(iOS 11, *)) {
         if (context.biometryType == LABiometryTypeFaceID) {
           [biometrics addObject:@"face"];
         } else if (context.biometryType == LABiometryTypeTouchID) {
@@ -110,8 +151,6 @@
         [biometrics addObject:@"fingerprint"];
       }
     }
-  } else if (authError.code == LAErrorTouchIDNotEnrolled) {
-    [biometrics addObject:@"undefined"];
   }
   result(biometrics);
 }
@@ -178,9 +217,15 @@
   } else {
     switch (error.code) {
       case LAErrorPasscodeNotSet:
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+      // TODO(stuartmorgan): Remove the pragma and s/TouchID/Biometry/ in these constants when
+      // iOS 10 support is dropped. The values are the same, only the names have changed.
       case LAErrorTouchIDNotAvailable:
       case LAErrorTouchIDNotEnrolled:
       case LAErrorTouchIDLockout:
+#pragma clang diagnostic pop
+      case LAErrorUserFallback:
         [self handleErrors:error flutterArguments:arguments withFlutterResult:result];
         return;
       case LAErrorSystemCancel:
@@ -200,7 +245,12 @@
   NSString *errorCode = @"NotAvailable";
   switch (authError.code) {
     case LAErrorPasscodeNotSet:
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+      // TODO(stuartmorgan): Remove the pragma and s/TouchID/Biometry/ in this constant when
+      // iOS 10 support is dropped. The values are the same, only the names have changed.
     case LAErrorTouchIDNotEnrolled:
+#pragma clang diagnostic pop
       if ([arguments[@"useErrorDialogs"] boolValue]) {
         [self alertMessage:arguments[@"goToSettingDescriptionIOS"]
                  firstButton:arguments[@"okButton"]
@@ -210,7 +260,12 @@
       }
       errorCode = authError.code == LAErrorPasscodeNotSet ? @"PasscodeNotSet" : @"NotEnrolled";
       break;
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+      // TODO(stuartmorgan): Remove the pragma and s/TouchID/Biometry/ in this constant when
+      // iOS 10 support is dropped. The values are the same, only the names have changed.
     case LAErrorTouchIDLockout:
+#pragma clang diagnostic pop
       [self alertMessage:arguments[@"lockOut"]
                firstButton:arguments[@"okButton"]
              flutterResult:result
